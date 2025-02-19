@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import logo from "@/app/attendease_logo.webp";
 import { dark } from "@clerk/themes";
 import {
   ClerkProvider,
@@ -41,10 +42,19 @@ export default function RootLayout({
       }}
     >
       <html lang="en">
-        <body className="dark text-white">
+        <body className="dark text-white font-mono">
           <PrimaryContainer>
             <nav className="w-full flex justify-between">
-              <h1 className="text-2xl font-bold font-sans logo">Attend Ease</h1>
+              <Link className="cursor-pointer" href={"/"}>
+                <img
+                  width={50}
+                  className="rounded-md"
+                  height={50}
+                  src={logo.src}
+                  alt="logo"
+                />
+              </Link>
+
               <div>
                 <div className="flex gap-2">
                   <SignedOut>
