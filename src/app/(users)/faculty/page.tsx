@@ -1,6 +1,7 @@
+import BreadCrumb from "@/components/BreadCrumb";
 import React from "react";
 
 const FacultyPage = () => {
-  return <div>FacultyPage</div>;
+  return <div></div>;
 };
 export default FacultyPage;
