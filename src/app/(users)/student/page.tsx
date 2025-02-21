@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const StudentPage = () => {
@@ -68,9 +69,16 @@ const StudentPage = () => {
 
   const [submitted, setSubmitted] = useState<boolean>(false);
 
+  function notify() {
+    toast("Form is been submitted succesfully", {
+      description: new Date().toLocaleString(),
+    });
+  }
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     setSubmitted(true);
+    notify();
   }
 
   return (

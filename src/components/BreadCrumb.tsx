@@ -17,8 +17,11 @@ const BreadCrumb = () => {
     return list.splice(0, index).join("/");
   };
 
+  if (pathname.includes("sign-in") || pathname.includes("sign-up")) {
+    return <> </>;
+  }
   return (
-    <Breadcrumb className="my-4">
+    <Breadcrumb className="">
       <BreadcrumbList>
         {breadCrumbList?.map((s: string, index: number) => {
           return (
