@@ -3,56 +3,72 @@ import {
   clerkClient,
   createRouteMatcher,
 } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
+
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isStudentRoute = createRouteMatcher(["/student(.*)"]);
 const isFacultyRoute = createRouteMatcher(["/faculty(.*)"]);
 
-export default clerkMiddleware(async (auth, req) => {
-  "use server";
-  const { userId, redirectToSignIn } = await auth();
+const roles = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+  FACULTY: "FACULTY",
+};
 
-  // user must be signed in to access url
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
+const authMiddleware = clerkMiddleware(async (auth, req) => {
+  let { userId, redirectToSignIn } = await auth();
+
+  // Public routes don't require authentication
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
-  // Fetch the user's role from the session claims
-  // @ts-ignore
-  const client = await clerkClient();
-  const user = userId && (await client.users.getUser(userId));
+
+  // User must be signed in for protected routes
+  await auth.protect();
+
+  if (!userId) {
+    return redirectToSignIn();
+  }
+
+  // Fetch user from Clerk
+  const user = await (await clerkClient()).users.getUser(userId);
+
   if (!user) {
     return redirectToSignIn();
   }
-  const userRole = user?.publicMetadata?.role;
-  console.log(userRole);
-  if (userRole == "admin") {
+
+  const userRole = user.publicMetadata.role;
+
+  // Allow ADMINs to proceed
+  if (userRole === roles.ADMIN) {
     return NextResponse.next();
   }
 
-  if (isFacultyRoute(req) && userRole !== "faculty") {
-    console.log("You are in faculty routes");
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-  if (isStudentRoute(req) && userRole !== "student") {
+  // Restrict faculty routes
+  if (isFacultyRoute(req) && userRole !== roles.FACULTY) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (isAdminRoute(req) && userRole !== "admin") {
+  // Restrict student routes
+  if (isStudentRoute(req) && userRole !== roles.STUDENT) {
     return NextResponse.redirect(new URL("/", req.url));
   }
+
+  // Restrict admin routes
+  if (isAdminRoute(req) && userRole !== roles.ADMIN) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   return NextResponse.next();
 });
 
+export default authMiddleware;
+
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };
