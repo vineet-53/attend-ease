@@ -11,7 +11,7 @@ const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isStudentRoute = createRouteMatcher(["/student(.*)"]);
 const isFacultyRoute = createRouteMatcher(["/faculty(.*)"]);
 
-const roles = {
+export const ACCOUNT_TYPES = {
   ADMIN: "ADMIN",
   STUDENT: "STUDENT",
   FACULTY: "FACULTY",
@@ -38,26 +38,21 @@ const authMiddleware = clerkMiddleware(async (auth, req) => {
   if (!user) {
     return redirectToSignIn();
   }
-
-  const userRole = user.publicMetadata.role;
-
-  // Allow ADMINs to proceed
-  if (userRole === roles.ADMIN) {
+  const userRole = user?.publicMetadata?.role;
+  console.log(userRole);
+  if (userRole == ACCOUNT_TYPES.ADMIN) {
     return NextResponse.next();
   }
 
-  // Restrict faculty routes
-  if (isFacultyRoute(req) && userRole !== roles.FACULTY) {
+  if (isFacultyRoute(req) && userRole !== ACCOUNT_TYPES.FACULTY) {
+    console.log("You are in faculty routes");
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+  if (isStudentRoute(req) && userRole !== ACCOUNT_TYPES["STUDENT"]) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Restrict student routes
-  if (isStudentRoute(req) && userRole !== roles.STUDENT) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  // Restrict admin routes
-  if (isAdminRoute(req) && userRole !== roles.ADMIN) {
+  if (isAdminRoute(req) && userRole !== ACCOUNT_TYPES.ADMIN) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 

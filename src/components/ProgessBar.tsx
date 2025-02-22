@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import "@/lib/utils/nprogress-config";
 
 //@ts-ignore
 import NProgress from "nprogress";
