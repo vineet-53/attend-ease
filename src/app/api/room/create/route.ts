@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     await db.insert(rooms).values({
       //@ts-ignore
-      clerkId: user.id,
+      clerkId: String(user.id),
       facultyName: room_info.faculty_name,
       facultyEmail: room_info.email,
       subjectCode: room_info.subject_code,

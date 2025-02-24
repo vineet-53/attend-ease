@@ -120,9 +120,23 @@ const CreateRoomForm = () => {
       // update the form using different query
       const toastId = toast.loading("updating form...");
       console.log("UPDATING FORM", roomId);
+
       try {
-        const response = await axios.put("/api/room/update");
-      } catch (err: any) {}
+        const roomDetails = {
+          ...values,
+          ...location,
+        };
+        const response = await axios.put(`/api/room/${roomId}`, {
+          roomDetails,
+        });
+        if (!response.data.success) {
+          throw new Error(response.data?.message || "error updating form");
+        }
+        window.location.reload();
+      } catch (err: any) {
+        toast.error(err?.message || err);
+        console.log(err?.message || err);
+      }
       toast.dismiss(toastId);
     }
   }
