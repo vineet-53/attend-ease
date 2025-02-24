@@ -1,0 +1,5 @@
+export const ACCOUNT_TYPES = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+  FACULTY: "FACULTY",
+};

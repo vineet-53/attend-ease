@@ -1,0 +1,1 @@
+CREATE TYPE "public"."status" AS ENUM('OPEN', 'CLOSED');

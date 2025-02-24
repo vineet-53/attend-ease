@@ -1,0 +1,1 @@
+ALTER TABLE "rooms" ADD COLUMN "facultyName" varchar(255) NOT NULL;

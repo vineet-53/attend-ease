@@ -28,19 +28,20 @@ import {
 } from "@radix-ui/react-collapsible";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
-
+import { ACCOUNT_TYPES } from "@/types/account-types";
+const { ADMIN, FACULTY, STUDENT } = ACCOUNT_TYPES;
 const helpItems = [
   {
     title: "Feedback",
     url: "/feedback",
     icon: Send,
-    type: ["admin", "faculty", "student"],
+    type: [ADMIN, STUDENT, FACULTY],
   },
   {
     title: "Contact",
     url: "/contact",
     icon: Contact,
-    type: ["admin", "faculty", "student"],
+    type: [ADMIN, STUDENT, FACULTY],
   },
 ];
 const applicationItems = [
@@ -48,13 +49,13 @@ const applicationItems = [
     title: "Create Room",
     url: "/faculty",
     icon: DoorOpen,
-    type: ["admin", "faculty"],
+    type: [ADMIN, FACULTY],
   },
   {
     title: "Attendance",
     url: "/student",
     icon: ClipboardType,
-    type: ["student", "admin"],
+    type: [ADMIN, STUDENT],
   },
 ];
 
@@ -90,8 +91,8 @@ export function AppSidebar() {
                     {applicationItems.map(
                       (item: {
                         type: string[];
-                        icon: LucideIcon;
                         title: string;
+                        icon: LucideIcon;
                         url: string;
                       }) => {
                         if (item.type.includes(userRole))

@@ -1,0 +1,1 @@
+ALTER TABLE "rooms" ALTER COLUMN "status" SET DATA TYPE status;

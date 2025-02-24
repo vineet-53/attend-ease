@@ -1,45 +1,26 @@
-import {
-  clerkMiddleware,
-  clerkClient,
-  createRouteMatcher,
-} from "@clerk/nextjs/server";
-
 import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { ACCOUNT_TYPES } from "@/types/account-types";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isStudentRoute = createRouteMatcher(["/student(.*)"]);
 const isFacultyRoute = createRouteMatcher(["/faculty(.*)"]);
 
-export const ACCOUNT_TYPES = {
-  ADMIN: "ADMIN",
-  STUDENT: "STUDENT",
-  FACULTY: "FACULTY",
-};
-
-const authMiddleware = clerkMiddleware(async (auth, req) => {
-  let { userId, redirectToSignIn } = await auth();
-
+export default clerkMiddleware(async (auth, req) => {
+  let { sessionClaims, redirectToSignIn } = await auth();
   // Public routes don't require authentication
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // User must be signed in for protected routes
   await auth.protect();
 
-  if (!userId) {
+  const userRole = sessionClaims?.metadata?.role;
+
+  if (!userRole) {
     return redirectToSignIn();
   }
-
-  // Fetch user from Clerk
-  const user = await (await clerkClient()).users.getUser(userId);
-
-  if (!user) {
-    return redirectToSignIn();
-  }
-  const userRole = user?.publicMetadata?.role;
-  console.log(userRole);
   if (userRole == ACCOUNT_TYPES.ADMIN) {
     return NextResponse.next();
   }
@@ -48,7 +29,7 @@ const authMiddleware = clerkMiddleware(async (auth, req) => {
     console.log("You are in faculty routes");
     return NextResponse.redirect(new URL("/", req.url));
   }
-  if (isStudentRoute(req) && userRole !== ACCOUNT_TYPES["STUDENT"]) {
+  if (isStudentRoute(req) && userRole !== ACCOUNT_TYPES.STUDENT) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -58,8 +39,6 @@ const authMiddleware = clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 });
-
-export default authMiddleware;
 
 export const config = {
   matcher: [

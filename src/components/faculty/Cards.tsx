@@ -2,9 +2,7 @@
 import React, { useState } from "react";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -20,9 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 import CreateRoomForm from "./CreateRoomForm";
 import SubHeading from "../SubHeading";
+import { useFormContext } from "@/contexts/room-form-provider";
 
 const Cards = () => {
-  const [open, setOpen] = useState(false);
+  //TODO: fix this using useformcontextprovider
+  const { open, setOpen, setFormDefaultValues, setRoomId } = useFormContext();
   return (
     <div>
       <SubHeading
@@ -39,7 +39,17 @@ const Cards = () => {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  setOpen(true);
+                  setRoomId(null);
+                  setFormDefaultValues({
+                    batch: "",
+                    class_code: "",
+                    email: "",
+                    faculty_name: "",
+                    subject_code: "",
+                  });
+                }}
                 variant="default"
                 className="ml-auto"
               >
@@ -49,7 +59,7 @@ const Cards = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Room Form</DialogTitle>
-                <CreateRoomForm setOpen={setOpen} />
+                <CreateRoomForm />
               </DialogHeader>
             </DialogContent>
           </Dialog>

@@ -10,25 +10,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TRoom } from "@/types/Faculty-types";
+import { useFormContext } from "@/contexts/room-form-provider";
+import { toast } from "sonner";
 
-const RoomListDropdown = ({ roomid }: { roomid: string }) => {
-  const [isRoomOpen, setIsRoomOpen] = useState(true);
-  const handleOpenRoom = () => {
+const RoomListDropdown = ({ room }: { room: TRoom }) => {
+  const { setEdit, open, setOpen, setFormDefaultValues, setRoomId } =
+    useFormContext();
+
+  const {
+    batch,
+    roomid,
+    status,
+    classCode,
+    subjectCode,
+    facultyName,
+    facultyEmail,
+  } = room;
+
+  const [isRoomOpen, setIsRoomOpen] = useState(
+    room?.status === "OPEN" ? true : false,
+  );
+
+  const handleOpenRoom = (roomid: string) => {
     // TODO: backend request to open the room
-    console.log("opening room ", roomid);
     setIsRoomOpen((prev) => !prev);
   };
-  const handleCloseRoom = () => {
+  const handleCloseRoom = (roomid: string) => {
     // TODO: backend request to close the room
     console.log("closing room ", roomid);
     setIsRoomOpen((prev) => !prev);
   };
-  const handleEditRoom = () => {
-    console.log("editing room ", roomid);
+  const handleEditRoom = (roomid: string) => {
+    toast.message("Edting Room Form...");
+    setFormDefaultValues({
+      class_code: classCode || "",
+      batch: batch || "",
+      email: facultyEmail || "",
+      faculty_name: facultyName || "",
+      subject_code: subjectCode || "",
+    });
+    setOpen(true);
+    setEdit(true);
+    setRoomId(roomid || null);
   };
-  const handleDeleteRoom = () => {
+
+  const handleDeleteRoom = (roomid: string) => {
     console.log("deleting room ", roomid);
   };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,21 +69,25 @@ const RoomListDropdown = ({ roomid }: { roomid: string }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(roomid)}>
+        <DropdownMenuItem
+          onClick={() => navigator.clipboard.writeText(room.roomid)}
+        >
           Copy room ID
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleEditRoom}>Edit Room</DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDeleteRoom}>
+        <DropdownMenuItem onClick={() => handleEditRoom(room.roomid)}>
+          Edit Room
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleDeleteRoom(room.roomid)}>
           Delete Room
         </DropdownMenuItem>
         {!isRoomOpen && (
-          <DropdownMenuItem onClick={handleCloseRoom}>
+          <DropdownMenuItem onClick={() => handleCloseRoom(room.roomid)}>
             Close Room
           </DropdownMenuItem>
         )}
         {isRoomOpen && (
-          <DropdownMenuItem onClick={handleOpenRoom}>
+          <DropdownMenuItem onClick={() => handleOpenRoom(room.roomid)}>
             Open Room
           </DropdownMenuItem>
         )}

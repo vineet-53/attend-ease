@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useFormContext } from "@/contexts/room-form-provider";
 
 const formSchema = z.object({
   faculty_name: z
@@ -48,16 +50,18 @@ const formSchema = z.object({
     .min(2, { message: "atleast 2 characters" }),
 });
 
-const CreateRoomForm = ({ setOpen }: { setOpen: (state: boolean) => void }) => {
+type Location = {
+  lat: number;
+  long: number;
+  altitude?: number | null;
+};
+
+const CreateRoomForm = () => {
+  const { edit, setOpen, defaultValues, roomId } = useFormContext();
+  const [location, setLocation] = useState<Location | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      faculty_name: "",
-      email: "",
-      subject_code: "",
-      batch: "",
-      class_code: "",
-    },
+    defaultValues: defaultValues,
   });
   function notify(status: string) {
     if (status == "success") {
@@ -71,12 +75,70 @@ const CreateRoomForm = ({ setOpen }: { setOpen: (state: boolean) => void }) => {
     }
   }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // if form get submit the close the form
-    setOpen(false);
-    notify("success");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!location) {
+      toast.error("Please provide location access");
+      if (navigator.geolocation)
+        navigator.geolocation.getCurrentPosition((coords) => {
+          setLocation({
+            lat: coords.coords.latitude,
+            long: coords.coords.longitude,
+            altitude: coords.coords.altitude,
+          });
+        });
+      return;
+    }
+    if (!edit) {
+      const toastId = toast.loading("submitting form...");
+      try {
+        values = {
+          ...values,
+          ...location,
+        };
+
+        let response = await axios
+          .post("/api/room/create", {
+            room_info: values,
+          })
+          .then((data) => data.data);
+
+        console.log("logging res after submitting form ", response);
+
+        if (!response.success) {
+          throw new Error(response);
+        }
+
+        setOpen(false);
+        notify("success");
+        window.location.reload();
+      } catch (err: any) {
+        toast.error("Erorr creating form try again...");
+        console.log(err?.message || err);
+      }
+      toast.dismiss(toastId);
+    } else {
+      // update the form using different query
+      const toastId = toast.loading("updating form...");
+      console.log("UPDATING FORM", roomId);
+      try {
+        const response = await axios.put("/api/room/update");
+      } catch (err: any) {}
+      toast.dismiss(toastId);
+    }
   }
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((coords) => {
+        console.log(coords);
+        setLocation({
+          lat: coords.coords.latitude,
+          long: coords.coords.longitude,
+          altitude: coords.coords.altitude,
+        });
+      });
+    }
+  }, []);
   return (
     <div className="font-sans">
       <Form {...form}>
